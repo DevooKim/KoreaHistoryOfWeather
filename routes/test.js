@@ -27,7 +27,7 @@ const url = `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${l
 router.use('/', async (req, res) => {
     await request(url, (response, body) => {
         console.log("test1");
-        console.log(body.body);
+        //console.log(body.body);
         //next(res);
     });
     //console.log(req);
