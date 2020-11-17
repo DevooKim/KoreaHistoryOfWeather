@@ -4,7 +4,6 @@ const dotenv = require('dotenv')
 const path = require('path')
 
 const indexRouter = require('./routes/index')
-//const testRouter = require('./routes/test')
 
 dotenv.config();
 
