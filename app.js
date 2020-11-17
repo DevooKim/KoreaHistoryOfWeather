@@ -17,7 +17,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/index', indexRouter);
-//app.use('/test', testRouter);
 
 // app.use((req, res, next) => {
 //     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`); //추후 제거
