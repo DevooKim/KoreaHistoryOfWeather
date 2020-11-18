@@ -9,7 +9,7 @@ dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY
 const lat = 36.354661;
 const lon = 127.420958;
-const time = 1605539776 ;
+const time = 1605578400;
 //const url = `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${lat}&lon=${lon}&dt=${time}&appid=${apiKey}`
 const url = {
     uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
@@ -33,7 +33,6 @@ router.use('/', async (req, res) => {
     const test = res.locals.test;
     console.log(test);
     res.send(test);
-
     
 });
 
