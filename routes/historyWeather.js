@@ -2,44 +2,38 @@ const rp = require('request-promise')
 const express = require('express')
 const dotenv = require('dotenv');
 const { response } = require('express');
-const winston = require('../config/winston')
 
 const router = express.Router();
 
 dotenv.config();
 
-
 const apiKey = process.env.OPENWEATHER_API_KEY
-// const time = 1605745732;
+const time = 1605745732;
 
-//lat/lon: 36.354687/127.420997
+//lat: 36.354687, lon: 127.420997
 router.get('/:lat/:lon', async (req, res) => {
 
-    let interval = setInterval(async () => {
-        const time = conv();
-        // const time = conv() - 3600;
-        winston.info(new Date((time + 32400) * 1000));
-        await rp({
-            uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-            qs: {
-                lat: req.params.lat,
-                lon: req.params.lon,
-                dt: time - 86400,
-                appid: apiKey
+    await rp({
+        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
+        qs: {
+            lat: req.params.lat,
+            lon: req.params.lon,
+            dt: time,
+            appid: apiKey
 
-            }
-        }, (response, body) => {
-            //hourly => func() => 0, 3, 6, 9..21
-            //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
+        }
+    }, (response, body) => {
+        //hourly => func() => 0, 3, 6, 9..21
+        //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
 
-            const yesterdayWeather = JSON.parse(body.body);
-            const yesterdays = parse(yesterdayWeather.hourly)
+        const yesterdayWeather = JSON.parse(body.body);
+        const yesterdays = parse(yesterdayWeather.hourly)
 
-            res.locals.yesterdays = yesterdays;
+        res.locals.yesterdays = yesterdays;
 
-        });
+    });
 
-        await rp({
+    await rp({
             uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
             qs: {
                 lat: req.params.lat,
@@ -52,66 +46,55 @@ router.get('/:lat/:lon', async (req, res) => {
             //hourly => func() => 0, 3, 6, 9..21
             //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
 
-            const beforeWeather = JSON.parse(body.body);
-            const befores = parse(beforeWeather.hourly)
-            res.locals.befores = befores;
+            const beforeTodayWeather = JSON.parse(body.body);
+            const beforeTodays = parse(beforeWeather.hourly)
+            console.log(beforeTodayWeather.hourly)
+            res.locals.beforeTodays = beforeTodays;
 
         });
 
-        await rp({
-            uri: "https://api.openweathermap.org/data/2.5/onecall",
-            qs: {
-                lat: req.params.lat,
-                lon: req.params.lon,
-                exclude: "current,minutely,daily,alerts",
-                appid: apiKey
-            }
-        }, (response, body) => {
-            const forecastWeather = JSON.parse(body.body);
-            const forecasts = parse(forecastWeather.hourly);
-            const todays = forecasts.slice(0, 7);
-            const tomorrows = forecasts.slice(8);
-            res.locals.todays = todays;
-            res.locals.tomorrows = tomorrows;
-        });
+    await rp({
+        uri: "https://api.openweathermap.org/data/2.5/onecall",
+        qs: {
+            lat: req.params.lat,
+            lon: req.params.lon,
+            exclude: "current,minutely,daily,alerts",
+            appid: apiKey
+        }
+    }, (response, body) => {
+        const forecastWeather = JSON.parse(body.body);
+        const forecasts = parse(forecastWeather.hourly);
+        const todays = forecasts.slice(0,7);
+        const tomorrows = forecasts.slice(8);
+        res.locals.todays = todays;
+        res.locals.tomorrows = tomorrows;
+    });
 
-        const allWeather = {
-            yesterdays: res.locals.yesterdays,
-            befores: res.locals.befores,
-            todays: res.locals.todays,
-            tomorrows: res.locals.tomorrows
-        };
+    const allWeather = {
+        yesterdays: res.locals.yesterdays,
+        beforeTodays: res.locals.beforeTodays,
+        todays: res.locals.todays,
+        tomorrows: res.locals.tomorrows
+    };
 
-        winston.info("yester");
-        for (let w of allWeather.yesterdays) {
-            winston.info(new Date((w.dt + 32400) * 1000));
-        }
-        winston.info("before");
-        for (let w of allWeather.befores) {
-            winston.info(new Date((w.dt + 32400) * 1000));
-        }
-        winston.info("today");
-        for (let w of allWeather.todays) {
-            winston.info(new Date((w.dt + 32400) * 1000));
-        }
-        winston.info("tomorrow");
-        for (let w of allWeather.tomorrows) {
-            winston.info(new Date((w.dt + 32400) * 1000));
-        }
-    }, 3600000);
-    
-    //res.send(allWeather);
-    res.send();
+    res.send(allWeather.todays);
+
 });
 
 function parse(body) {
 
     const data = [];
     try {
-        for (let i = 0; i < body.length; i++) {
+        for (let i = 0; i < body.length; i += 3) {
             data.push({
-                dt: body[i].dt
-            })
+                dt: body[i].dt,
+                temp: body[i].temp,
+                feels_like: body[i].feels_like,
+                clouds: body[i].clouds,
+                rain: body[i].rain,
+                snow: body[i].snow,
+                weather: body[i].weather
+            });
         }
     } catch (error) {
         console.error(error);
@@ -120,14 +103,6 @@ function parse(body) {
 
     return data;
 }
-
-function conv() {
-    winston.info("현재" + new Date());
-    return Math.floor(new Date().getTime() / 1000);
-}
-
-
-
 
 
 module.exports = router;

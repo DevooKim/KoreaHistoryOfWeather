@@ -1,24 +1,30 @@
 const rp = require('request-promise')
-const express = require('express')
 const dotenv = require('dotenv');
 const { response } = require('express');
 const winston = require('../config/winston')
 
 const apiKey = process.env.OPENWEATHER_API_KEY
-// const time = 1605745732;
+const lat = 36.354687; 
+const lon = 127.420997;
 
 //lat/lon: 36.354687/127.420997
 //router.get('/:lat/:lon', async (req, res) => {
 
 let interval = setInterval(async () => {
+    const W = {
+        yesterdays: [],
+        befores: [],
+        todays: [],
+        tomorrows: []
+    }
     const time = conv();
     // const time = conv() - 3600;
     winston.info(new Date((time + 32400) * 1000));
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
         qs: {
-            lat: req.params.lat,
-            lon: req.params.lon,
+            lat: lat,
+            lon: lon,
             dt: time - 86400,
             appid: apiKey
 
@@ -30,15 +36,15 @@ let interval = setInterval(async () => {
         const yesterdayWeather = JSON.parse(body.body);
         const yesterdays = parse(yesterdayWeather.hourly)
 
-        res.locals.yesterdays = yesterdays;
+        W.yesterdays = yesterdays;
 
     });
 
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
         qs: {
-            lat: req.params.lat,
-            lon: req.params.lon,
+            lat: lat,
+            lon: lon,
             dt: time,
             appid: apiKey
 
@@ -49,15 +55,15 @@ let interval = setInterval(async () => {
 
         const beforeWeather = JSON.parse(body.body);
         const befores = parse(beforeWeather.hourly)
-        res.locals.befores = befores;
+        W.befores = befores;
 
     });
 
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall",
         qs: {
-            lat: req.params.lat,
-            lon: req.params.lon,
+            lat: lat,
+            lon: lon,
             exclude: "current,minutely,daily,alerts",
             appid: apiKey
         }
@@ -66,15 +72,15 @@ let interval = setInterval(async () => {
         const forecasts = parse(forecastWeather.hourly);
         const todays = forecasts.slice(0, 7);
         const tomorrows = forecasts.slice(8);
-        res.locals.todays = todays;
-        res.locals.tomorrows = tomorrows;
+        W.todays = todays;
+        W.tomorrows = tomorrows;
     });
 
     const allWeather = {
-        yesterdays: res.locals.yesterdays,
-        befores: res.locals.befores,
-        todays: res.locals.todays,
-        tomorrows: res.locals.tomorrows
+        yesterdays: W.yesterdays,
+        befores: W.befores,
+        todays: W.todays,
+        tomorrows: W.tomorrows
     };
 
     winston.info("yester");
@@ -93,7 +99,8 @@ let interval = setInterval(async () => {
     for (let w of allWeather.tomorrows) {
         winston.info(new Date((w.dt + 32400) * 1000));
     }
-}, 3600000);
+    winston.length("---------------------------")
+}, 10000);
 
 
 function parse(body) {
