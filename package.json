@@ -10,11 +10,14 @@
   "author": "Devookim",
   "license": "ISC",
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "morgan": "^1.10.0",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"
