@@ -10,7 +10,7 @@ dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY
 const time = 1605657600;
 
-
+//lat: 36.354687, lon: 127.420997
 router.get('/:lat/:lon', async (req, res) => {
 
     await rp({
