@@ -8,7 +8,7 @@ const router = express.Router();
 dotenv.config();
 
 const apiKey = process.env.OPENWEATHER_API_KEY
-const time = 1605657600;
+const time = 1605745732;
 
 //lat: 36.354687, lon: 127.420997
 router.get('/:lat/:lon', async (req, res) => {
@@ -26,12 +26,32 @@ router.get('/:lat/:lon', async (req, res) => {
         //hourly => func() => 0, 3, 6, 9..21
         //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
 
-        const historyWeather = JSON.parse(body.body);
-        const historys = parse(historyWeather.hourly)
+        const yesterdayWeather = JSON.parse(body.body);
+        const yesterdays = parse(yesterdayWeather.hourly)
 
-        res.locals.historys = historys;
+        res.locals.yesterdays = yesterdays;
 
     });
+
+    await rp({
+            uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
+            qs: {
+                lat: req.params.lat,
+                lon: req.params.lon,
+                dt: time,
+                appid: apiKey
+
+            }
+        }, (response, body) => {
+            //hourly => func() => 0, 3, 6, 9..21
+            //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
+
+            const beforeTodayWeather = JSON.parse(body.body);
+            const beforeTodays = parse(beforeWeather.hourly)
+            console.log(beforeTodayWeather.hourly)
+            res.locals.beforeTodays = beforeTodays;
+
+        });
 
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall",
@@ -51,7 +71,8 @@ router.get('/:lat/:lon', async (req, res) => {
     });
 
     const allWeather = {
-        historys: res.locals.historys,
+        yesterdays: res.locals.yesterdays,
+        beforeTodays: res.locals.beforeTodays,
         todays: res.locals.todays,
         tomorrows: res.locals.tomorrows
     };
