@@ -1,6 +1,7 @@
 const rp = require('request-promise')
 const express = require('express')
 const dotenv = require('dotenv');
+const { setTimeArea } = require('./middlewares')
 const { response } = require('express');
 
 const router = express.Router();
@@ -10,8 +11,8 @@ dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY
 const time = 1605745732;
 
-//lat: 36.354687, lon: 127.420997
-router.get('/:lat/:lon', async (req, res) => {
+//lat, lon: 36.354687/127.420997
+router.get('/:lat/:lon', setTimeArea,async (req, res) => {
 
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",

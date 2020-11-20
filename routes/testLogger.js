@@ -15,11 +15,11 @@ let interval = setInterval(async () => {
         yesterdays: [],
         befores: [],
         todays: [],
-        tomorrows: []
+        tomorrows: [],
     }
     const time = conv();
-    // const time = conv() - 3600;
-    winston.info(new Date((time + 32400) * 1000));
+    // winston.info(new Date((time + 32400) * 1000));
+    winston.info(new Date(time * 1000));
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
         qs: {
@@ -85,21 +85,26 @@ let interval = setInterval(async () => {
 
     winston.info("yester");
     for (let w of allWeather.yesterdays) {
-        winston.info(new Date((w.dt + 32400) * 1000));
+        // winston.info(new Date((w.dt + 32400) * 1000));
+        winston.info(new Date(w.dt * 1000));
     }
     winston.info("before");
     for (let w of allWeather.befores) {
-        winston.info(new Date((w.dt + 32400) * 1000));
+        // winston.info(new Date((w.dt + 32400) * 1000));
+        winston.info(new Date(w.dt * 1000));
     }
     winston.info("today");
     for (let w of allWeather.todays) {
-        winston.info(new Date((w.dt + 32400) * 1000));
+        // winston.info(new Date((w.dt + 32400) * 1000));
+        winston.info(new Date(w.dt * 1000));
     }
     winston.info("tomorrow");
     for (let w of allWeather.tomorrows) {
-        winston.info(new Date((w.dt + 32400) * 1000));
+        // winston.info(new Date((w.dt + 32400) * 1000));
+        winston.info(new Date(w.dt * 1000));
+
     }
-    winston.length("---------------------------")
+    winston.info("---------------------------")
 }, 10000);
 
 
@@ -121,7 +126,7 @@ function parse(body) {
 }
 
 function conv() {
-    winston.info("현재" + new Date());
+    winston.info("현재" + new Date());  //server time
     return Math.floor(new Date().getTime() / 1000);
 }
 

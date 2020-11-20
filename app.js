@@ -4,7 +4,7 @@ const dotenv = require('dotenv')
 const path = require('path')
 
 const historyRouter = require('./routes/historyWeather')
-const loggingRouter = require('./routes/testLogger')
+//const loggingRouter = require('./routes/testLogger')
 
 dotenv.config();
 
@@ -35,7 +35,7 @@ app.use('/history', historyRouter);
 app.listen(app.get('port'), (err) => {
     if (!err) {
         console.log(app.get('port'), '번 포트에서 대기 중');
-        loggingRouter;
+        //loggingRouter;
     } else {
         console.log('서버 오류');
         throw new Error('서버 오류', err);
