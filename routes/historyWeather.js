@@ -1,8 +1,7 @@
 const rp = require('request-promise')
 const express = require('express')
 const dotenv = require('dotenv');
-const { setTimeArea } = require('./middlewares')
-const { response } = require('express');
+const { setSection } = require('./middlewares')
 
 const router = express.Router();
 
@@ -12,7 +11,7 @@ const apiKey = process.env.OPENWEATHER_API_KEY
 const time = 1605745732;
 
 //lat, lon: 36.354687/127.420997
-router.get('/:lat/:lon', setTimeArea,async (req, res) => {
+router.get('/:lat/:lon', isUtcUpdate, async (req, res) => {
 
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
@@ -26,7 +25,6 @@ router.get('/:lat/:lon', setTimeArea,async (req, res) => {
     }, (response, body) => {
         //hourly => func() => 0, 3, 6, 9..21
         //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
-
         const yesterdayWeather = JSON.parse(body.body);
         const yesterdays = parse(yesterdayWeather.hourly)
 
@@ -47,10 +45,9 @@ router.get('/:lat/:lon', setTimeArea,async (req, res) => {
             //hourly => func() => 0, 3, 6, 9..21
             //hourly.dt, temp, feels_like, humidity, clouds, *rain, *snow, [weather]
 
-            const beforeTodayWeather = JSON.parse(body.body);
-            const beforeTodays = parse(beforeWeather.hourly)
-            console.log(beforeTodayWeather.hourly)
-            res.locals.beforeTodays = beforeTodays;
+            const beforeWeather = JSON.parse(body.body);
+            const befores = parse(beforeWeather.hourly)
+            res.locals.befores = befores;
 
         });
 
@@ -73,10 +70,11 @@ router.get('/:lat/:lon', setTimeArea,async (req, res) => {
 
     const allWeather = {
         yesterdays: res.locals.yesterdays,
-        beforeTodays: res.locals.beforeTodays,
+        befores: res.locals.befores,
         todays: res.locals.todays,
         tomorrows: res.locals.tomorrows
     };
+    console.log(req.isUtcUpdate);
 
     res.send(allWeather.todays);
 
