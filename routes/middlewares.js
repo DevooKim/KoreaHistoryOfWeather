@@ -16,73 +16,90 @@ exports.getYesterdays = async (req, res, next) => {
 
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = getUnixTime(1);
-    const yesterdays = 
-        await rqHistory(location, unixTime).then((value) => {
-            return value;
-        });
+    const yesterdays = await rqHistory(location, unixTime);
 
-    console.log(yesterdays);
     if (0 <= kor.hour() && kor.hour() < 9) {
-        req.yesterdays = yesterdays
+        req.yesterdays = yesterdays;
         next();
 
     } else {
         const unixTime = getUnixTime(2);
-        const y2 = await rqHistory(location, unixTime).then((value) => {
-            return value;
-        })
-        
-        console.log(y2);
-        req.yesterdays = yesterdays
+        const secondYesterdays = await rqHistory(location, unixTime)
+        const newYesterdays = secondYesterdays.concat(yesterdays)
+        req.yesterdays = newYesterdays;
         next();
     }
 
 };
 
-function rqHistory(location, time) {
-    return new Promise((resolve, reject) => {
-        rp({
-            uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-                qs: {
-                    lat: location.lat,
-                    lon: location.lon,
-                    dt: time,
-                    appid: apiKey
-                }
-            }, (error, response, body) => {
-                if (error) {
-                    return reject(error);
-                }
-                // const historyWeather = JSON.parse(body);
-                // const historys = parse(historyWeather.hourly);
+exports.befores = async (req, res, next) => {
+    const location = { lat: req.params.lat, lon: req.params.lon };
+    const unixTime = getUnixTime(0);
+    const befores = await rqHistory(location, unixTime);
 
-                try {
-                    const historyWeather = JSON.parse(body);
-                    resolve(parse(historyWeather.hourly));
-                } catch (err) {
-                    reject(err);
-                }
-            });
-    });
+    req.befores = befores;
+    next();
 }
 
+exports.forecasts = async (req, res, next) => {
+    const location = { lat: req.params.lat, lon: req.params.lon };
+    const fores = await rqForecasts(location);
+
+    req.forecasts = fores;
+    next();
+}
+
+async function rqHistory(location, time) {
+    let historys = undefined;
+    await rp({
+        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
+            qs: {
+                lat: location.lat,
+                lon: location.lon,
+                dt: time,
+                appid: apiKey
+            }
+        }, (response, body) => {
+            const historyWeather = JSON.parse(body.body);
+            historys = parse(historyWeather.hourly);
+        });
+    return historys;
+}
+
+async function rqForecasts(location) {
+    let forecasts = undefined;
+    await rp({
+        uri: "https://api.openweathermap.org/data/2.5/onecall",
+        qs: {
+            lat: location.lat,
+            lon: location.lon,
+            exclude: "current,minutely,daily,alerts",
+            appid: apiKey
+        }
+    }, (response, body) => {
+        const forecastWeather = JSON.parse(body.body);
+        const start = 3 - ( kor.hour() % 3 );
+        forecasts = parse(forecastWeather.hourly, start);
+    });
+    return forecasts
+}
 
 function getUnixTime(offset) {
     return Math.floor(kor.subtract(offset, 'day') / 1000);
 }
 
-function parse(body) {
+function parse(body, start = 0) {
     const data = [];
     try {
-        for (let i = 0; i < body.length; i += 3) {
+        for (let i = start; i < body.length; i += 3) {
             data.push({
                 dt: body[i].dt,
-                temp: body[i].temp,
-                feels_like: body[i].feels_like,
-                clouds: body[i].clouds,
-                rain: body[i].rain,
-                snow: body[i].snow,
-                weather: body[i].weather
+                // temp: body[i].temp,
+                // feels_like: body[i].feels_like,
+                // clouds: body[i].clouds,
+                // rain: body[i].rain,
+                // snow: body[i].snow,
+                // weather: body[i].weather
             });
         }
     } catch (error) {
