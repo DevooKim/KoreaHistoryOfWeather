@@ -1,4 +1,4 @@
-const rp = require('request-promise')
+const rp = require('request-promise-native')
 const dotenv = require('dotenv');
 const { response } = require('express');
 const winston = require('../config/winston')
