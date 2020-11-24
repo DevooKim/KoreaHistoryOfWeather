@@ -1,6 +1,6 @@
 const rp = require('request-promise-native')
-const dotenv = require('dotenv');
-const { response } = require('express');
+const dotenv = require('dotenv')
+const { response } = require('express')
 const winston = require('../config/winston')
 
 const apiKey = process.env.OPENWEATHER_API_KEY
@@ -8,9 +8,11 @@ const lat = 36.354687;
 const lon = 127.420997;
 
 //lat/lon: 36.354687/127.420997
-//router.get('/:lat/:lon', async (req, res) => {
 
 let interval = setInterval(async () => {
+
+
+
     const W = {
         yesterdays: [],
         befores: [],
