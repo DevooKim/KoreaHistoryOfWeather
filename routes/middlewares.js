@@ -16,7 +16,14 @@ exports.getYesterdays = async (req, res, next) => {
 
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = getUnixTime(1);
-    const yesterdays = await rqHistory(location, unixTime);
+    // const yesterdays = await rqHistory(location, unixTime);
+    // console.log(yesterdays);
+
+    const yesterdays = 
+        await rqHistory(location, unixTime).then((value) => {
+            return value;
+        });
+    
     console.log(yesterdays);
     if (0 <= kor.hour() && kor.hour() < 9) {
         req.yesterdays = yesterdays
@@ -31,24 +38,30 @@ exports.getYesterdays = async (req, res, next) => {
 
 };
 
-async function rqHistory(location, time) {
-    await rp({
-    uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-        qs: {
-            lat: location.lat,
-            lon: location.lon,
-            dt: time,
-            appid: apiKey
-        }
-    }, (error, response, body) => {
-        if (!error) {
-            const historyWeather = JSON.parse(body);
-            const historys = parse(historyWeather.hourly);
-            return historyWeather;
-        } else {
-            console.error("history Error: ", + error);
-        }
-        
+function rqHistory(location, time) {
+    return new Promise((resolve, reject) => {
+        rp({
+            uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
+                qs: {
+                    lat: location.lat,
+                    lon: location.lon,
+                    dt: time,
+                    appid: apiKey
+                }
+            }, (error, response, body) => {
+                if (error) {
+                    return reject(error);
+                }
+                // const historyWeather = JSON.parse(body);
+                // const historys = parse(historyWeather.hourly);
+
+                try {
+                    const historyWeather = JSON.parse(body);
+                    resolve(parse(historyWeather.hourly));
+                } catch (err) {
+                    reject(err);
+                }
+            });
     });
 }
 
