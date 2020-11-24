@@ -16,14 +16,11 @@ exports.getYesterdays = async (req, res, next) => {
 
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = getUnixTime(1);
-    // const yesterdays = await rqHistory(location, unixTime);
-    // console.log(yesterdays);
-
     const yesterdays = 
         await rqHistory(location, unixTime).then((value) => {
             return value;
         });
-    
+
     console.log(yesterdays);
     if (0 <= kor.hour() && kor.hour() < 9) {
         req.yesterdays = yesterdays
@@ -31,7 +28,11 @@ exports.getYesterdays = async (req, res, next) => {
 
     } else {
         const unixTime = getUnixTime(2);
-        // yesterdays.concat(rqHistory(location, unixTime));
+        const y2 = await rqHistory(location, unixTime).then((value) => {
+            return value;
+        })
+        
+        console.log(y2);
         req.yesterdays = yesterdays
         next();
     }
