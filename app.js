@@ -4,7 +4,7 @@ const dotenv = require('dotenv')
 const path = require('path')
 
 const historyRouter = require('./routes/historyWeather')
-//const loggingRouter = require('./routes/testLogger')
+const loggingRouter = require('./routes/testLogger')
 
 dotenv.config();
 
@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/history', historyRouter);
+app.use('/test', loggingRouter);
 
 
 app.use((req, res, next) => {
