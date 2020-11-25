@@ -5,6 +5,15 @@ const express = require('express')
 const winston = require('../config/winston')
 const { getYesterdays, befores, forecasts } = require('./middlewares')
 
+const dayjs = require('dayjs')
+const UTC = require('dayjs/plugin/utc')
+const timezone = require('dayjs/plugin/timezone')
+
+dayjs.extend(UTC);
+dayjs.extend(timezone);
+dayjs.tz.setDefault("Asia/Seoul");
+const kor = dayjs().tz();
+
 dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY
 const router = express.Router();
@@ -15,20 +24,27 @@ const router = express.Router();
 router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
     
     //setInterval(async () => {
+        winston.info(kor.format());
         winston.info("yester");
         for (let w of req.yesterdays) {
             // winston.info(new Date((w.dt + 32400) * 1000));
-            winston.info(new Date(w.dt * 1000));
+            //winston.info(new Date(w.dt * 1000));
+
+            winston.info(dayjs.unix(w.dt).tz().format());
         }
         winston.info("before");
         for (let w of req.befores) {
             // winston.info(new Date((w.dt + 32400) * 1000));
-            winston.info(new Date(w.dt * 1000));
+            // winston.info(new Date(w.dt * 1000));
+            winston.info(dayjs.unix(w.dt).tz().format());
+
         }
         winston.info("forecast");
         for (let w of req.forecasts) {
             // winston.info(new Date((w.dt + 32400) * 1000));
-            winston.info(new Date(w.dt * 1000));
+            // winston.info(new Date(w.dt * 1000));
+            winston.info(dayjs.unix(w.dt).tz().format());
+
         }
         winston.info("---------------------------")
     //}, 10000);
