@@ -7,13 +7,13 @@ const timezone = require('dayjs/plugin/timezone')
 dayjs.extend(UTC);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("Asia/Seoul");
-const kor = dayjs().tz();
+// const kor = dayjs().tz();
 
 dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getYesterdays = async (req, res, next) => {
-    
+    const kor = dayjs().tz();
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = getUnixTime(1);
     const yesterdays = await rqHistory(location, unixTime);
@@ -77,6 +77,7 @@ async function rqForecasts(location) {
             appid: apiKey
         }
     }, (response, body) => {
+        const kor = dayjs().tz();
         const forecastWeather = JSON.parse(body.body);
         const start = 3 - ( kor.hour() % 3 );
         forecasts = parse(forecastWeather.hourly, start);
@@ -86,6 +87,7 @@ async function rqForecasts(location) {
 }
 
 function getUnixTime(offset) {
+    const kor = dayjs().tz();
     return Math.floor(kor.subtract(offset, 'day') / 1000);
 }
 
