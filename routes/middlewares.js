@@ -61,7 +61,11 @@ async function rqHistory(location, time) {
             }
         }, (response, body) => {
             const historyWeather = JSON.parse(body.body);
-            historys = parse(historyWeather.hourly);
+            if (historyWeather.hourly === undefined) {
+                historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
+            } else {
+                historys = parse(historyWeather.hourly);
+            }
         });
     return historys;
 }
