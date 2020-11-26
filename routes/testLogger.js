@@ -1,54 +1,53 @@
 const rp = require('request-promise-native')
-const dotenv = require('dotenv')
-const { response } = require('express')
 const express = require('express')
-const winston = require('../config/winston')
 const { getYesterdays, befores, forecasts } = require('./middlewares')
-
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
+const winston = require('winston')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
-dayjs.tz.setDefault("Asia/Seoul");
-const kor = dayjs().tz();
+dayjs.tz.setDefault("Asia/Seoul")
 
-dotenv.config();
-const apiKey = process.env.OPENWEATHER_API_KEY
 const router = express.Router();
 
-//lat/lon: 36.354687/127.420997
-
-//let interval = setInterval(async () => {
+//lat, lon: 36.354687/127.420997
 router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
+
+    const kor = dayjs().tz();
+    winston.info(kor)
+    const weathers = {
+        "yesterdays": [],
+        "todays": [],
+        "tomorrows": [],
+    }
+
+    const data = [...req.yesterdays, ...req.befores, ...req.forecasts]
+    // console.log(data);
+
+    weathers.yesterdays = data.slice(5, 13);
+    weathers.todays = data.slice(13, 21);
+    weathers.tomorrows = data.slice(21, 30);
+
+    winston.info("yesterdays");
+    print(weathers.yesterdays)
+
+    winston.info("todays");
+    print(weathers.todays)
+
+    winston.info("tomorrows");
+    print(weathers.tomorrows)
     
-    //setInterval(async () => {
-        winston.info(kor.format());
-        winston.info("yester");
-        for (let w of req.yesterdays) {
-            // winston.info(new Date((w.dt + 32400) * 1000));
-            //winston.info(new Date(w.dt * 1000));
+    res.send(weathers);
 
-            winston.info(dayjs.unix(w.dt).tz().format());
-        }
-        winston.info("before");
-        for (let w of req.befores) {
-            // winston.info(new Date((w.dt + 32400) * 1000));
-            // winston.info(new Date(w.dt * 1000));
-            winston.info(dayjs.unix(w.dt).tz().format());
-
-        }
-        winston.info("forecast");
-        for (let w of req.forecasts) {
-            // winston.info(new Date((w.dt + 32400) * 1000));
-            // winston.info(new Date(w.dt * 1000));
-            winston.info(dayjs.unix(w.dt).tz().format());
-
-        }
-        winston.info("---------------------------")
-    //}, 10000);
-    
 });
+
+function print(arr) {
+    for (let i = 0; i < arr.length; i++) {
+        winston.info(dayjs.unix(arr[i].dt).tz().format());
+    }
+}
+
 
 module.exports = router;
