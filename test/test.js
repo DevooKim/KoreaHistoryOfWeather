@@ -5,5 +5,5 @@ let timer = setInterval(async () => {
     })
     console.log("test");
 
-}, 10000)
+}, 3600000)
 
