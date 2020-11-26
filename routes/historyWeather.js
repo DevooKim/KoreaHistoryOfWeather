@@ -21,12 +21,23 @@ router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => 
     }
     const data = [...req.yesterdays, ...req.befores, ...req.forecasts]
 
-    weathers.yesterdays = data.slice(5, 13);
-    weathers.todays = data.slice(13, 21);
-    weathers.tomorrows = data.slice(21, 30);
+    // weathers.yesterdays = data.slice(5, 13);
+    // weathers.todays = data.slice(13, 21);
+    // weathers.tomorrows = data.slice(21, 30);
+
+    weathers.yesterdays = print(data.slice(5, 13));
+    weathers.todays = print(data.slice(13, 21));
+    weathers.tomorrows = print(data.slice(21, 30));
     
     res.send(weathers);
 
 });
+
+function print(arr) {
+    for(let i = 0; i < arr.length; i++) {
+        arr[i] = dayjs.unix(arr[i].dt).tz().hour()
+    }
+    return arr;
+}
 
 module.exports = router;
