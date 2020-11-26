@@ -4,7 +4,7 @@ const { getYesterdays, befores, forecasts } = require('./middlewares')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
-const winston = require('winston')
+const winston = require('../config/winston')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
