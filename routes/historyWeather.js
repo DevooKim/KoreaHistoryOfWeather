@@ -11,15 +11,16 @@ dayjs.tz.setDefault("Asia/Seoul")
 
 const router = express.Router();
 
+const weathers = {
+    "yesterdays": [],
+    "todays": [],
+    "tomorrows": [],
+}
+    
 //lat, lon: 36.354687/127.420997
 router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
 
-    const weathers = {
-        "yesterdays": [],
-        "todays": [],
-        "tomorrows": [],
-    }
-    const data = [...req.yesterdays, ...req.befores, ...req.forecasts]
+    let data = [...req.yesterdays, ...req.befores, ...req.forecasts]
 
     weathers.yesterdays = data.slice(5, 13);
     weathers.todays = data.slice(13, 21);
