@@ -8,7 +8,8 @@ const { combine, timestamp, printf } = winston.format;
 
 // Define log format
 const logFormat = printf(info => {
-  return `${info.timestamp} ${info.level}: ${info.message}`;
+  //return `${info.timestamp} ${info.level}: ${info.message}`;
+  return `${info.timestamp}: ${info.message}`;
 });
 
 /*
