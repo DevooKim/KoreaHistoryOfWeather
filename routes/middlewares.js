@@ -14,9 +14,9 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
+    console.log('now-y: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = await getUnixTime(1);
-    console.log("yester: " + unixTime);
     const yesterdays = await rqHistory(location, unixTime);
 
     if (0 <= kor.hour() && kor.hour() < 9) {
@@ -35,11 +35,11 @@ exports.getYesterdays = async (req, res, next) => {
 
 exports.befores = async (req, res, next) => {
     const kor = dayjs.tz();
-
+    console.log('now-b: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-    // const unixTime = await getUnixTime(0);
-    const unixTime = Math.floor(kor/ 1000);
-    console.log("befores: " + unixTime);
+    const unixTime = await getUnixTime(0);
+    //const unixTime = Math.floor(kor/ 1000);
+    //console.log("befores: " + unixTime);
 
     const befores = await rqHistory(location, unixTime);
 
@@ -67,11 +67,13 @@ async function rqHistory(location, time) {
             }
         }, (response, body) => {
             const historyWeather = JSON.parse(body.body);
-            if (historyWeather.hourly === undefined) {
-                historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
-            } else {
-                historys = parse(historyWeather.hourly);
-            }
+            // if (historyWeather.hourly === undefined) {
+            //     historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
+            // } else {
+            //     historys = parse(historyWeather.hourly);
+            // }
+            historys = parse(historyWeather.hourly);
+
         });
     return historys;
 }
@@ -97,8 +99,9 @@ async function rqForecasts(location) {
 }
 
 async function getUnixTime(offset) {
-    const kor = dayjs.tz();
-    console.log(kor.subtract(offset,'day').format());
+    let kor = dayjs.tz();
+    console.log('now-u: ' + kor.format());
+    kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
 }
 
