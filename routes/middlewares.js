@@ -14,13 +14,9 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
+    console.log('now-y: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-
-    //redis - location check
-    //if (data) next(data);
-    //else setRedis
-    
-    const unixTime = getUnixTime(1);
+    const unixTime = await getUnixTime(1);
     const yesterdays = await rqHistory(location, unixTime);
 
     if (0 <= kor.hour() && kor.hour() < 9) {
@@ -28,7 +24,7 @@ exports.getYesterdays = async (req, res, next) => {
         next();
 
     } else {
-        const unixTime = getUnixTime(2);
+        const unixTime = await getUnixTime(2);
         const secondYesterdays = await rqHistory(location, unixTime)
         const newYesterdays = secondYesterdays.concat(yesterdays)
         req.yesterdays = newYesterdays;
@@ -38,13 +34,13 @@ exports.getYesterdays = async (req, res, next) => {
 };
 
 exports.befores = async (req, res, next) => {
+    const kor = dayjs.tz();
+    console.log('now-b: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-    
-    //redis - location check
-    //if (data) next(data);
-    //else setRedis
-    
-    const unixTime = getUnixTime(0);
+    const unixTime = await getUnixTime(0);
+    //const unixTime = Math.floor(kor/ 1000);
+    //console.log("befores: " + unixTime);
+
     const befores = await rqHistory(location, unixTime);
 
     req.befores = befores;
@@ -53,11 +49,6 @@ exports.befores = async (req, res, next) => {
 
 exports.forecasts = async (req, res, next) => {
     const location = { lat: req.params.lat, lon: req.params.lon };
-
-    //redis - location check
-    //if (data) next(data);
-    //else setRedis
-     
     const fores = await rqForecasts(location);
 
     req.forecasts = fores;
@@ -74,15 +65,14 @@ async function rqHistory(location, time) {
                 dt: time,
                 appid: apiKey
             }
-        }, (error, response, body) => {
-            if (error) throw error;
-
+        }, (response, body) => {
             const historyWeather = JSON.parse(body.body);
             if (historyWeather.hourly === undefined) {
                 historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
             } else {
                 historys = parse(historyWeather.hourly);
             }
+
         });
     return historys;
 }
@@ -97,20 +87,20 @@ async function rqForecasts(location) {
             exclude: "current,minutely,daily,alerts",
             appid: apiKey
         }
-    }, (error, response, body) => {
-        if (error) throw error;
-
+    }, (response, body) => {
         const kor = dayjs.tz();
         const forecastWeather = JSON.parse(body.body);
         const start = 3 - ( kor.hour() % 3 );
         forecasts = parse(forecastWeather.hourly, start);
+        //forecasts = parse(forecastWeather.hourly);
     });
     return forecasts
 }
 
-function getUnixTime(offset) {
+async function getUnixTime(offset) {
     let kor = dayjs.tz();
-    kor = kor.subtract(3, 'second');
+    console.log('now-u: ' + kor.format());
+    kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
 }
 
@@ -129,8 +119,7 @@ function parse(body, start = 0) {
             });
         }
     } catch (error) {
-        throw error;
-        // console.error("parse Error: " + error);
+        console.error("parse Error: " + error);
     }
     return data;
 }
