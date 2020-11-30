@@ -105,12 +105,12 @@ function parse(body, start = 0) {
         for (let i = start; i < body.length; i += 3) {
             data.push({
                 dt: body[i].dt,
-                // temp: body[i].temp,
-                // feels_like: body[i].feels_like,
-                // clouds: body[i].clouds,
-                // rain: body[i].rain,
-                // snow: body[i].snow,
-                // weather: body[i].weather
+                temp: body[i].temp,
+                feels_like: body[i].feels_like,
+                clouds: body[i].clouds,
+                rain: body[i].rain,
+                snow: body[i].snow,
+                weather: body[i].weather
             });
         }
     } catch (error) {
