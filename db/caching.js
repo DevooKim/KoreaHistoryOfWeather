@@ -13,7 +13,30 @@ client.on('error', (err) => {
     console.log("Error: " + err);
 })
 
-exports.isCaching = (location) => {
-    const key = "" + location.lat + location.lon;
-    
+exports.isCaching = (key) => {
+    client.exists(key, (err, reply) => {
+        if (reply === 1) {
+            console.log('존재');
+        } else {
+            console.log("없음");
+        }
+        return reply;
+    })
+}
+
+exports.getCache = (key) => {
+    client.get(key, (err, data) => {
+        if(err) throw err
+        if(data) {
+            return data;
+        }
+    })
+}
+
+exports.setCache = (key, data) => {
+    try {
+        client.set(key, JSON.stringify(data), 'EX', 10);
+    } catch(err) {
+        throw err;
+    }
 }

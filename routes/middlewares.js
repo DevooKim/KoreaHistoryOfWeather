@@ -3,6 +3,7 @@ const dotenv = require('dotenv')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
+const { isCaching, getCache, setCache} = require('../db/caching')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -16,20 +17,45 @@ exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     console.log('now-y: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-    const unixTime = await getUnixTime(1);
-    const yesterdays = await rqHistory(location, unixTime);
+    const key = "" + location.lat + location.lon;
+    //if (isCaching(location) next(data))
+    //else caching
 
-    if (0 <= kor.hour() && kor.hour() < 9) {
-        req.yesterdays = yesterdays;
-        next();
-
+    if (isCaching(key)) {
+        req.yesterdays = getCache(key);
+        next()
     } else {
-        const unixTime = await getUnixTime(2);
-        const secondYesterdays = await rqHistory(location, unixTime)
-        const newYesterdays = secondYesterdays.concat(yesterdays)
-        req.yesterdays = newYesterdays;
+        const unixTime = await getUnixTime(1);
+        const yesterdays = await rqHistory(location, unixTime);
+    
+        if (0 <= kor.hour() && kor.hour() < 9) {
+            req.yesterdays = yesterdays;
+            setCache(key, yesterdays);
+    
+        } else {
+            const unixTime = await getUnixTime(2);
+            const secondYesterdays = await rqHistory(location, unixTime)
+            const newYesterdays = secondYesterdays.concat(yesterdays)
+            req.yesterdays = newYesterdays;
+            setCache(key, newYesterdays);
+        }
         next();
     }
+    
+    // const unixTime = await getUnixTime(1);
+    // const yesterdays = await rqHistory(location, unixTime);
+
+    // if (0 <= kor.hour() && kor.hour() < 9) {
+    //     req.yesterdays = yesterdays;
+    //     next();
+
+    // } else {
+    //     const unixTime = await getUnixTime(2);
+    //     const secondYesterdays = await rqHistory(location, unixTime)
+    //     const newYesterdays = secondYesterdays.concat(yesterdays)
+    //     req.yesterdays = newYesterdays;
+    //     next();
+    // }
 
 };
 
@@ -37,10 +63,11 @@ exports.befores = async (req, res, next) => {
     const kor = dayjs.tz();
     console.log('now-b: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-    const unixTime = await getUnixTime(0);
-    //const unixTime = Math.floor(kor/ 1000);
-    //console.log("befores: " + unixTime);
 
+    //if (isCaching(location) next(data))
+    //else caching
+    
+    const unixTime = await getUnixTime(0);
     const befores = await rqHistory(location, unixTime);
 
     req.befores = befores;
@@ -49,6 +76,12 @@ exports.befores = async (req, res, next) => {
 
 exports.forecasts = async (req, res, next) => {
     const location = { lat: req.params.lat, lon: req.params.lon };
+
+    //if (isCaching(location) next(data))
+    //else caching
+    // const key = "" + location.lat + location.lon;
+
+    
     const fores = await rqForecasts(location);
 
     req.forecasts = fores;
