@@ -13,30 +13,46 @@ client.on('error', (err) => {
     console.log("Error: " + err);
 })
 
-exports.isCaching = (key) => {
-    client.exists(key, (err, reply) => {
+exports.isCaching = async (key) => {
+    console.log("isCaching")
+
+    await client.exists(key, async (err, reply) => {
         if (reply === 1) {
-            console.log('존재');
+            console.log('존재: ' + key);
+            return true;
         } else {
-            console.log("없음");
+            console.log("없음: " + key);
+            return false
         }
-        return reply;
     })
+    // return true;
+
 }
 
-exports.getCache = (key) => {
-    client.get(key, (err, data) => {
+exports.getCache = async (key) => {
+    console.log("getCache")
+    let rtn = undefined
+    await client.get(key, (err, data) => {
         if(err) throw err
         if(data) {
-            return data;
+            console.log("data: " + data);
+            // return JSON.parse(data);
+            // rtn = JSON.parse(data);
+            rtn = data;
+            console.log(rtn);
         }
     })
+    return rtn;
 }
 
 exports.setCache = (key, data) => {
+    console.log("setCache")
     try {
-        client.set(key, JSON.stringify(data), 'EX', 10);
+        // client.set(key, JSON.stringify(data), 'EX', 3600);
+        client.set(key, JSON.stringify(data));
     } catch(err) {
         throw err;
     }
+
+    return "test"
 }

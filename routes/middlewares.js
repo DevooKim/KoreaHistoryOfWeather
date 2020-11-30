@@ -15,14 +15,14 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
-    console.log('now-y: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
-    const key = "" + location.lat + location.lon;
-    //if (isCaching(location) next(data))
-    //else caching
-
-    if (isCaching(key)) {
-        req.yesterdays = getCache(key);
+    const key = "Y" + location.lat + location.lon;
+    const isCached = await isCaching(key);
+    console.log(isCached)
+    if (isCached) {
+        console.log('=============')
+        req.yesterdays = await getCache(key);
+        // console.log("yes" + req.yesterdays);
         next()
     } else {
         const unixTime = await getUnixTime(1);
@@ -30,14 +30,15 @@ exports.getYesterdays = async (req, res, next) => {
     
         if (0 <= kor.hour() && kor.hour() < 9) {
             req.yesterdays = yesterdays;
-            setCache(key, yesterdays);
+            await setCache(key, yesterdays);
     
         } else {
             const unixTime = await getUnixTime(2);
             const secondYesterdays = await rqHistory(location, unixTime)
             const newYesterdays = secondYesterdays.concat(yesterdays)
             req.yesterdays = newYesterdays;
-            setCache(key, newYesterdays);
+            const test = await setCache(key, newYesterdays);
+            console.log(test);
         }
         next();
     }
@@ -61,17 +62,19 @@ exports.getYesterdays = async (req, res, next) => {
 
 exports.befores = async (req, res, next) => {
     const kor = dayjs.tz();
-    console.log('now-b: ' + kor.format());
     const location = { lat: req.params.lat, lon: req.params.lon };
+    const key = "B" + location.lat + location.lon;
 
-    //if (isCaching(location) next(data))
-    //else caching
-    
-    const unixTime = await getUnixTime(0);
-    const befores = await rqHistory(location, unixTime);
-
-    req.befores = befores;
-    next();
+    if (isCaching(key)) {
+        req.befores = getCache(key);
+        next();
+    } else {
+        const unixTime = await getUnixTime(0);
+        const befores = await rqHistory(location, unixTime);
+        setCache(key, befores);
+        req.befores = befores;
+        next();
+    }
 }
 
 exports.forecasts = async (req, res, next) => {
@@ -132,7 +135,7 @@ async function rqForecasts(location) {
 
 async function getUnixTime(offset) {
     let kor = dayjs.tz();
-    console.log('now-u: ' + kor.format());
+    // console.log('now-u: ' + kor.format());
     kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
 }
