@@ -3,7 +3,6 @@ const dotenv = require('dotenv')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
-const { isCached } = require('../db/caching')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -16,9 +15,13 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     const location = { lat: req.params.lat, lon: req.params.lon };
+
+    //redis - location check
+    //if (data) next(data);
+    //else setRedis
+    
     const unixTime = getUnixTime(1);
-    // const yesterdays = await rqHistory(location, unixTime);
-    const yesterdays = isCached(rqHistory(location, unixTime), location);
+    const yesterdays = await rqHistory(location, unixTime);
 
     if (0 <= kor.hour() && kor.hour() < 9) {
         req.yesterdays = yesterdays;
@@ -36,6 +39,11 @@ exports.getYesterdays = async (req, res, next) => {
 
 exports.befores = async (req, res, next) => {
     const location = { lat: req.params.lat, lon: req.params.lon };
+    
+    //redis - location check
+    //if (data) next(data);
+    //else setRedis
+    
     const unixTime = getUnixTime(0);
     const befores = await rqHistory(location, unixTime);
 
@@ -45,6 +53,11 @@ exports.befores = async (req, res, next) => {
 
 exports.forecasts = async (req, res, next) => {
     const location = { lat: req.params.lat, lon: req.params.lon };
+
+    //redis - location check
+    //if (data) next(data);
+    //else setRedis
+     
     const fores = await rqForecasts(location);
 
     req.forecasts = fores;
@@ -87,7 +100,7 @@ async function rqForecasts(location) {
     }, (error, response, body) => {
         if (error) throw error;
 
-        const kor = dayjs().tz();
+        const kor = dayjs.tz();
         const forecastWeather = JSON.parse(body.body);
         const start = 3 - ( kor.hour() % 3 );
         forecasts = parse(forecastWeather.hourly, start);
@@ -107,12 +120,12 @@ function parse(body, start = 0) {
         for (let i = start; i < body.length; i += 3) {
             data.push({
                 dt: body[i].dt,
-                // temp: body[i].temp,
-                // feels_like: body[i].feels_like,
-                // clouds: body[i].clouds,
-                // rain: body[i].rain,
-                // snow: body[i].snow,
-                // weather: body[i].weather
+                temp: body[i].temp,
+                feels_like: body[i].feels_like,
+                clouds: body[i].clouds,
+                rain: body[i].rain,
+                snow: body[i].snow,
+                weather: body[i].weather
             });
         }
     } catch (error) {
