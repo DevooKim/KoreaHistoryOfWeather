@@ -1,4 +1,3 @@
-const rp = require('request-promise-native')
 const express = require('express')
 const { getYesterdays, befores, forecasts } = require('./middlewares')
 const dayjs = require('dayjs')
