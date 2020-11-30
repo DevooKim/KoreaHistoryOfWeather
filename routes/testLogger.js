@@ -12,33 +12,27 @@ dayjs.tz.setDefault("Asia/Seoul")
 
 const router = express.Router();
 
+const weathers = {
+    "yesterdays": [],
+    "todays": [],
+    "tomorrows": [],
+}
+
 //lat, lon: 36.354687/127.420997
 router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
 
-    const kor = dayjs().tz();
-    winston.info(kor)
-    const weathers = {
-        "yesterdays": [],
-        "todays": [],
-        "tomorrows": [],
-    }
+    const kor = dayjs.tz();
+    winston.info("now" + kor.format())
 
     const data = [...req.yesterdays, ...req.befores, ...req.forecasts]
-    // console.log(data);
-
-    weathers.yesterdays = data.slice(5, 13);
-    weathers.todays = data.slice(13, 21);
-    weathers.tomorrows = data.slice(21, 30);
 
     winston.info("yesterdays");
-    print(weathers.yesterdays)
-
+    weathers.yesterdays = print(data.slice(5, 13));
     winston.info("todays");
-    print(weathers.todays)
-
+    weathers.todays = print(data.slice(13, 21));
     winston.info("tomorrows");
-    print(weathers.tomorrows)
-    
+    weathers.tomorrows = print(data.slice(21, 30));
+
     res.send(weathers);
 
 });
@@ -46,7 +40,10 @@ router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => 
 function print(arr) {
     for (let i = 0; i < arr.length; i++) {
         winston.info(dayjs.unix(arr[i].dt).tz().format());
+        arr[i] = dayjs.unix(arr[i].dt).tz().hour()
     }
+
+    return arr;
 }
 
 

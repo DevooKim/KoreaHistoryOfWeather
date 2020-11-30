@@ -59,7 +59,9 @@ async function rqHistory(location, time) {
                 dt: time,
                 appid: apiKey
             }
-        }, (response, body) => {
+        }, (error, response, body) => {
+            if (error) throw error;
+
             const historyWeather = JSON.parse(body.body);
             if (historyWeather.hourly === undefined) {
                 historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
@@ -80,12 +82,13 @@ async function rqForecasts(location) {
             exclude: "current,minutely,daily,alerts",
             appid: apiKey
         }
-    }, (response, body) => {
+    }, (error, response, body) => {
+        if (error) throw error;
+
         const kor = dayjs().tz();
         const forecastWeather = JSON.parse(body.body);
         const start = 3 - ( kor.hour() % 3 );
         forecasts = parse(forecastWeather.hourly, start);
-        //forecasts = parse(forecastWeather.hourly);
     });
     return forecasts
 }
@@ -111,7 +114,8 @@ function parse(body, start = 0) {
             });
         }
     } catch (error) {
-        console.error("parse Error: " + error);
+        throw error;
+        // console.error("parse Error: " + error);
     }
     return data;
 }
