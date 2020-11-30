@@ -3,6 +3,7 @@ const dotenv = require('dotenv')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
+const { isCached } = require('../db/caching')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -16,7 +17,8 @@ exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     const location = { lat: req.params.lat, lon: req.params.lon };
     const unixTime = getUnixTime(1);
-    const yesterdays = await rqHistory(location, unixTime);
+    // const yesterdays = await rqHistory(location, unixTime);
+    const yesterdays = isCached(rqHistory(location, unixTime), location);
 
     if (0 <= kor.hour() && kor.hour() < 9) {
         req.yesterdays = yesterdays;
