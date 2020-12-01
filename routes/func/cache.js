@@ -76,17 +76,17 @@ async function parseData(data) {
     }
 
     winston.info("yesterdays")
-    weathers.yesterdays = data.slice(0, 8).map((v) => {
+    weathers.yesterdays = data.slice(5, 13).map((v) => {
         winston.info(dayjs.unix(JSON.parse(v).dt).tz());
         return dayjs.unix(JSON.parse(v).dt).tz().hour();
     });
     winston.info("todays")
-    weathers.todays = data.slice(8, 16).map((v) => {
+    weathers.todays = data.slice(13, 21).map((v) => {
         winston.info(dayjs.unix(JSON.parse(v).dt).tz());
         return dayjs.unix(JSON.parse(v).dt).tz().hour();
     });
     winston.info("tomorrows")
-    weathers.tomorrows = data.slice(16, 25).map((v) => {
+    weathers.tomorrows = data.slice(21, 30).map((v) => {
         winston.info(dayjs.unix(JSON.parse(v).dt).tz());
         return dayjs.unix(JSON.parse(v).dt).tz().hour();
     });

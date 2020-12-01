@@ -16,12 +16,14 @@ exports.getYesterdays = async (req, res, next) => {
 
     let unixTime = await getUnixTime(1);
     let yesterdays = await rqHistory(location, unixTime);
+    console.log(yesterdays.length);
 
-    if (kor.add() >= 9) {
+    if (kor.hour() >= 9) {
         unixTime = await getUnixTime(2);
         const secondYesterdays = await rqHistory(location, unixTime);
-        yesterdays = secondYesterdays.concat(yesterdays)
+        yesterdays = yesterdays.concat(secondYesterdays)
     }
+    console.log(yesterdays.length);
     
     console.log("yesterdays caching...");
     yesterdays = await setCache(key, yesterdays);
