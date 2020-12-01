@@ -15,9 +15,11 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
-    const location = { lat: req.params.lat, lon: req.params.lon };
+    const { lat, lon } = req.params;
+    const location = { lat: lat, lon: lon };
     const key = "Y" + location.lat + location.lon;
     const isCached = await isCaching(key);
+    
     console.log(isCached)
     if (isCached) {
         console.log('=============')
