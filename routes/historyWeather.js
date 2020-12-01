@@ -16,7 +16,8 @@ const weathers = {
     "todays": [],
     "tomorrows": [],
 }
-    
+
+//key: 36.35127.42
 //lat, lon: 36.354687/127.420997
 router.get('/:lat/:lon', isCache, getYesterdays, getBefores, getForecasts, async (req, res) => {
 
