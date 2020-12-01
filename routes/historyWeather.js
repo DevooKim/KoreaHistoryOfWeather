@@ -21,7 +21,6 @@ const weathers = {
 router.get('/:lat/:lon', isCache, getYesterdays, getBefores, getForecasts, async (req, res) => {
 
     let data = [...req.yesterdays, ...req.befores, ...req.forecasts]
-console.log("data: " + typeof(data));
     weathers.yesterdays = data.slice(5, 13);
     weathers.todays = data.slice(13, 21);
     weathers.tomorrows = data.slice(21, 30);
