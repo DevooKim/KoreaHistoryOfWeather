@@ -11,48 +11,48 @@ dayjs.tz.setDefault("Asia/Seoul")
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
     const location = { lat: lat, lon: lon }
 
     let unixTime = await getUnixTime(1);
     let yesterdays = await rqHistory(location, unixTime);
 
-    if (kor.add() >= 9) {
+    if (kor.hour() >= 9) {
         unixTime = await getUnixTime(2);
         const secondYesterdays = await rqHistory(location, unixTime);
-        yesterdays = secondYesterdays.concat(yesterdays)
+        yesterdays = yesterdays.concat(secondYesterdays)
     }
     
     console.log("yesterdays caching...");
-    await setCache(key, yesterdays);
+    yesterdays = await setCache(key, yesterdays);
     req.yesterdays = yesterdays;
     next();  
 }
 
 exports.getBefores = async (req, res, next) => {
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
     const location = { lat: lat, lon: lon }
     const unixTime = await getUnixTime(0);
-    const befores = await rqHistory(location, unixTime);
+    let befores = await rqHistory(location, unixTime);
 
     console.log("befores caching...");
-    await setCache(key, befores);
+    befores = await setCache(key, befores);
     req.befores = befores;
     next();
 }
 
 exports.getForecasts = async (req, res, next) => {
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
     const location = { lat: lat, lon: lon }
-    const forecasts = await rqForecasts(location);
+    let forecasts = await rqForecasts(location);
     
     const kor = dayjs.tz();
     const start = 3 - ( kor.hour() % 3 );
 
     console.log("forecasts caching...");
-    await setCache(key, forecasts, start);
+    forecasts = await setCache(key, forecasts, start);
     req.forecasts = forecasts;
     next();
 }

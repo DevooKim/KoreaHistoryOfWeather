@@ -1,6 +1,8 @@
 const redis = require('redis')
 const dotenv = require('dotenv');
 
+const EX = 30;
+
 dotenv.config();
 
 const client = redis.createClient(
@@ -14,6 +16,7 @@ client.on('error', (err) => {
 
 exports.isCache = async (req, res, next) => {
     const key = "" + req.params.lat + req.params.lon;
+    req.key = key;
 
     await client.lrange(key, 0, -1, async (err, arr) => {
         if (err) throw err;
@@ -31,6 +34,7 @@ exports.isCache = async (req, res, next) => {
 }
 
 exports.setCache = (key, body, start = 0) => {
+    const result = []
     try {
         for (let i = start; i < body.length; i += 3) {
             const data = {
@@ -43,15 +47,18 @@ exports.setCache = (key, body, start = 0) => {
                 weather: body[i].weather
             }
 
+            result.push(data);
             client.rpush(key, JSON.stringify(data));
         }
         
         console.log("set Cache OK");
-        client.expire(key, 60);
+        client.expire(key, EX);
         
     } catch (error) {
         console.error("setCache Error: " + error);
     }
+
+    return result;
 }
 
 async function parseData(data) {
