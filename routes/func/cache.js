@@ -15,14 +15,12 @@ client.on('error', (err) => {
 });
 
 exports.isCache = async (req, res, next) => {
-    const key = "" + req.params.lat + req.params.lon;
+    const key = await getKey(req.params.lat, req.params.lon);
     req.key = key;
 
     await client.lrange(key, 0, -1, async (err, arr) => {
         if (err) throw err;
         if(arr.length !== 0) {
-            // console.log(arr[0])
-            // const data = JSON.parse(arr);
             const weather = await parseData(arr);
             console.log("call cache ok");
             res.send(weather);
@@ -79,4 +77,8 @@ async function parseData(data) {
     });
 
     return weathers
+}
+
+async function getKey(lat, lon) {
+    return Number(lat).toFixed(2) + Number(lon).toFixed(2);
 }
