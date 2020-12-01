@@ -42,17 +42,17 @@ async function parseData(data) {
 
     winston.info("yesterdays")
     weathers.yesterdays = data.slice(5, 13).map((v) => {
-        winston.info(dayjs.unix(v.dt).tz());
+        winston.info(dayjs.unix(v.dt).tz().format());
         return dayjs.unix(v.dt).tz().hour();
     });
     winston.info("todays")
     weathers.todays = data.slice(13, 21).map((v) => {
-        winston.info(dayjs.unix(v.dt).tz());
+        winston.info(dayjs.unix(v.dt).tz().format());
         return dayjs.unix(v.dt).tz().hour();
     });
     winston.info("tomorrows")
     weathers.tomorrows = data.slice(21, 30).map((v) => {
-        winston.info(dayjs.unix(v.dt).tz());
+        winston.info(dayjs.unix(v.dt).tz().format());
         return dayjs.unix(v.dt).tz().hour();
     });
 
