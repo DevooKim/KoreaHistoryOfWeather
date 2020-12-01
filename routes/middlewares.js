@@ -57,55 +57,7 @@ exports.getForecasts = async (req, res, next) => {
     next();
 }
 
-<<<<<<< HEAD
-async function rqHistory(location, time) {
-    let historys = undefined;
-    await rp({
-        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-            qs: {
-                lat: location.lat,
-                lon: location.lon,
-                dt: time,
-                appid: apiKey
-            }
-        }, (error, response, body) => {
-            if (error) throw error;
-
-            const historyWeather = JSON.parse(body.body);
-            if (historyWeather.hourly === undefined) {
-                historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
-            } else {
-                historys = parse(historyWeather.hourly);
-            }
-        });
-    return historys;
-}
-
-async function rqForecasts(location) {
-    let forecasts = undefined;
-    await rp({
-        uri: "https://api.openweathermap.org/data/2.5/onecall",
-        qs: {
-            lat: location.lat,
-            lon: location.lon,
-            exclude: "current,minutely,daily,alerts",
-            appid: apiKey
-        }
-    }, (error, response, body) => {
-        if (error) throw error;
-
-        const kor = dayjs.tz();
-        const forecastWeather = JSON.parse(body.body);
-        const start = 3 - ( kor.hour() % 3 );
-        forecasts = parse(forecastWeather.hourly, start);
-    });
-    return forecasts
-}
-
-function getUnixTime(offset) {
-=======
 async function getUnixTime(offset) {
->>>>>>> redis
     let kor = dayjs.tz();
     kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
