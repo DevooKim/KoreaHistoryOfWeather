@@ -3,7 +3,7 @@ const dotenv = require('dotenv')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
-const { isCaching, getCache, setCache} = require('../db/caching')
+//const { isCaching, getCache, setCache} = require('../db/caching')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);

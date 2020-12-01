@@ -1,5 +1,5 @@
 const express = require('express')
-const { getYesterdays, befores, forecasts } = require('./middlewares')
+const { getYesterdays, getBefores, getFores } = require('./middlewares')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
@@ -17,18 +17,18 @@ const weathers = {
 }
     
 //lat, lon: 36.354687/127.420997
-// router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
 router.get('/:lat/:lon', getYesterdays, async (req, res) => {
 
-    //let data = [...req.yesterdays, ...req.befores, ...req.forecasts]
-    let data = [...req.yesterdays]
+    // let data = [...req.yesterdays, ...req.befores, ...req.forecasts]
 
-    weathers.yesterdays = data.slice(5, 13);
-    //weathers.todays = data.slice(13, 21);
-    //weathers.tomorrows = data.slice(21, 30);
+    // weathers.yesterdays = data.slice(5, 13);
+    // weathers.todays = data.slice(13, 21);
+    // weathers.tomorrows = data.slice(21, 30);
     
-    res.send(weathers);
+    res.send(req.befores);
+
 
 });
+
 
 module.exports = router;
