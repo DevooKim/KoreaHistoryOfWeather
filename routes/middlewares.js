@@ -2,6 +2,7 @@ const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
 const { rqHistory, rqForecasts } = require('./func/request')
+const { setCache } = require('./func/cache')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -10,6 +11,7 @@ dayjs.tz.setDefault("Asia/Seoul")
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     const { lat, lon } = req.params;
+    const key = "" + lat + lon;
     const location = { lat: lat, lon: lon }
 
     let unixTime = await getUnixTime(1);
@@ -21,26 +23,36 @@ exports.getYesterdays = async (req, res, next) => {
         yesterdays = secondYesterdays.concat(yesterdays)
     }
     
+    console.log("yesterdays caching...");
+    await setCache(key, yesterdays);
     req.yesterdays = yesterdays;
     next();  
 }
 
 exports.getBefores = async (req, res, next) => {
     const { lat, lon } = req.params;
+    const key = "" + lat + lon;
     const location = { lat: lat, lon: lon }
     const unixTime = await getUnixTime(0);
     const befores = await rqHistory(location, unixTime);
 
-    console.log(befores);
+    console.log("befores caching...");
+    await setCache(key, befores);
     req.befores = befores;
     next();
 }
 
-exports.getFores = async (req, res, next) => {
+exports.getForecasts = async (req, res, next) => {
     const { lat, lon } = req.params;
+    const key = "" + lat + lon;
     const location = { lat: lat, lon: lon }
     const forecasts = await rqForecasts(location);
+    
+    const kor = dayjs.tz();
+    const start = 3 - ( kor.hour() % 3 );
 
+    console.log("forecasts caching...");
+    await setCache(key, forecasts, start);
     req.forecasts = forecasts;
     next();
 }
@@ -49,24 +61,4 @@ async function getUnixTime(offset) {
     let kor = dayjs.tz();
     kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
-}
-
-function parse(body, start = 0) {
-    const data = [];
-    try {
-        for (let i = start; i < body.length; i += 3) {
-            data.push({
-                dt: body[i].dt,
-                temp: body[i].temp,
-                feels_like: body[i].feels_like,
-                clouds: body[i].clouds,
-                rain: body[i].rain,
-                snow: body[i].snow,
-                weather: body[i].weather
-            });
-        }
-    } catch (error) {
-        console.error("parse Error: " + error);
-    }
-    return data;
 }

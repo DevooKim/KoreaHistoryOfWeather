@@ -37,7 +37,7 @@ exports.rqForecasts = async (location) => {
             exclude: "current,minutely,daily,alerts",
             appid: apiKey
         }
-    }, (err, response, body) => {
+    }, (response, body) => {
         const data = JSON.parse(body.body);
         fores = data.hourly;
     });
