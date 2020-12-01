@@ -1,123 +1,66 @@
-const rp = require('request-promise-native')
-const dotenv = require('dotenv')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
+const { rqHistory, rqForecasts } = require('./func/request')
+const { setCache } = require('./func/cache')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
-dayjs.tz.setDefault("Asia/Seoul");
-// const kor = dayjs().tz();
-
-dotenv.config();
-const apiKey = process.env.OPENWEATHER_API_KEY;
+dayjs.tz.setDefault("Asia/Seoul")
 
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
-    const location = { lat: req.params.lat, lon: req.params.lon };
-    const unixTime = await getUnixTime(1);
-    console.log("yester: " + unixTime);
-    const yesterdays = await rqHistory(location, unixTime);
+    const { lat, lon } = req.params;
+    const key = "" + lat + lon;
+    const location = { lat: lat, lon: lon }
 
-    if (0 <= kor.hour() && kor.hour() < 9) {
-        req.yesterdays = yesterdays;
-        next();
+    let unixTime = await getUnixTime(1);
+    let yesterdays = await rqHistory(location, unixTime);
+    console.log(yesterdays.length);
 
-    } else {
-        const unixTime = await getUnixTime(2);
-        const secondYesterdays = await rqHistory(location, unixTime)
-        const newYesterdays = secondYesterdays.concat(yesterdays)
-        req.yesterdays = newYesterdays;
-        next();
+    if (kor.hour() >= 9) {
+        unixTime = await getUnixTime(2);
+        const secondYesterdays = await rqHistory(location, unixTime);
+        yesterdays = yesterdays.concat(secondYesterdays)
     }
+    console.log(yesterdays.length);
+    
+    console.log("yesterdays caching...");
+    yesterdays = await setCache(key, yesterdays);
+    req.yesterdays = yesterdays;
+    next();  
+}
 
-};
+exports.getBefores = async (req, res, next) => {
+    const { lat, lon } = req.params;
+    const key = "" + lat + lon;
+    const location = { lat: lat, lon: lon }
+    const unixTime = await getUnixTime(0);
+    let befores = await rqHistory(location, unixTime);
 
-exports.befores = async (req, res, next) => {
-    const kor = dayjs.tz();
-
-    const location = { lat: req.params.lat, lon: req.params.lon };
-    // const unixTime = await getUnixTime(0);
-    const unixTime = Math.floor(kor/ 1000);
-    console.log("befores: " + unixTime);
-
-    const befores = await rqHistory(location, unixTime);
-
+    console.log("befores caching...");
+    befores = await setCache(key, befores);
     req.befores = befores;
     next();
 }
 
-exports.forecasts = async (req, res, next) => {
-    const location = { lat: req.params.lat, lon: req.params.lon };
-    const fores = await rqForecasts(location);
+exports.getForecasts = async (req, res, next) => {
+    const { lat, lon } = req.params;
+    const key = "" + lat + lon;
+    const location = { lat: lat, lon: lon }
+    let forecasts = await rqForecasts(location);
+    
+    const kor = dayjs.tz();
+    const start = 3 - ( kor.hour() % 3 );
 
-    req.forecasts = fores;
+    console.log("forecasts caching...");
+    forecasts = await setCache(key, forecasts, start);
+    req.forecasts = forecasts;
     next();
 }
 
-async function rqHistory(location, time) {
-    let historys = undefined;
-    await rp({
-        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-            qs: {
-                lat: location.lat,
-                lon: location.lon,
-                dt: time,
-                appid: apiKey
-            }
-        }, (response, body) => {
-            const historyWeather = JSON.parse(body.body);
-            if (historyWeather.hourly === undefined) {
-                historys = parse([historyWeather.current])  //AM9:00(Seoul) //not verification
-            } else {
-                historys = parse(historyWeather.hourly);
-            }
-        });
-    return historys;
-}
-
-async function rqForecasts(location) {
-    let forecasts = undefined;
-    await rp({
-        uri: "https://api.openweathermap.org/data/2.5/onecall",
-        qs: {
-            lat: location.lat,
-            lon: location.lon,
-            exclude: "current,minutely,daily,alerts",
-            appid: apiKey
-        }
-    }, (response, body) => {
-        const kor = dayjs.tz();
-        const forecastWeather = JSON.parse(body.body);
-        const start = 3 - ( kor.hour() % 3 );
-        forecasts = parse(forecastWeather.hourly, start);
-        //forecasts = parse(forecastWeather.hourly);
-    });
-    return forecasts
-}
-
 async function getUnixTime(offset) {
-    const kor = dayjs.tz();
-    console.log(kor.subtract(offset,'day').format());
+    let kor = dayjs.tz();
+    kor = kor.subtract(2, 'second');
     return Math.floor(kor.subtract(offset, 'day') / 1000);
-}
-
-function parse(body, start = 0) {
-    const data = [];
-    try {
-        for (let i = start; i < body.length; i += 3) {
-            data.push({
-                dt: body[i].dt,
-                // temp: body[i].temp,
-                // feels_like: body[i].feels_like,
-                // clouds: body[i].clouds,
-                // rain: body[i].rain,
-                // snow: body[i].snow,
-                // weather: body[i].weather
-            });
-        }
-    } catch (error) {
-        console.error("parse Error: " + error);
-    }
-    return data;
 }

@@ -1,6 +1,6 @@
-const rp = require('request-promise-native')
 const express = require('express')
-const { getYesterdays, befores, forecasts } = require('./middlewares')
+const { isCache } = require('./func/cache')
+const { getYesterdays, getBefores, getForecasts } = require('./middlewares')
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
@@ -12,41 +12,51 @@ dayjs.tz.setDefault("Asia/Seoul")
 
 const router = express.Router();
 
+const weathers = {
+    "yesterdays": [],
+    "todays": [],
+    "tomorrows": [],
+}
+    
 //lat, lon: 36.354687/127.420997
-router.get('/:lat/:lon', getYesterdays, befores, forecasts, async (req, res) => {
+router.get('/:lat/:lon', isCache, getYesterdays, getBefores, getForecasts, async (req, res) => {
 
-    const kor = dayjs().tz();
-    winston.info(kor)
+    let data = [...req.yesterdays, ...req.befores, ...req.forecasts]
+    // weathers.yesterdays = data.slice(5, 13);
+    // weathers.todays = data.slice(13, 21);
+    // weathers.tomorrows = data.slice(21, 30);
+
+    winston.info('not cached')
+    const weathers = await parseData(data);
+
+    res.send(weathers);
+
+});
+
+async function parseData(data) {
     const weathers = {
         "yesterdays": [],
         "todays": [],
         "tomorrows": [],
     }
 
-    const data = [...req.yesterdays, ...req.befores, ...req.forecasts]
-    // console.log(data);
+    winston.info("yesterdays")
+    weathers.yesterdays = data.slice(5, 13).map((v) => {
+        winston.info(dayjs.unix(v.dt).tz().format());
+        return dayjs.unix(v.dt).tz().hour();
+    });
+    winston.info("todays")
+    weathers.todays = data.slice(13, 21).map((v) => {
+        winston.info(dayjs.unix(v.dt).tz().format());
+        return dayjs.unix(v.dt).tz().hour();
+    });
+    winston.info("tomorrows")
+    weathers.tomorrows = data.slice(21, 30).map((v) => {
+        winston.info(dayjs.unix(v.dt).tz().format());
+        return dayjs.unix(v.dt).tz().hour();
+    });
 
-    weathers.yesterdays = data.slice(5, 13);
-    weathers.todays = data.slice(13, 21);
-    weathers.tomorrows = data.slice(21, 30);
-
-    winston.info("yesterdays");
-    print(weathers.yesterdays)
-
-    winston.info("todays");
-    print(weathers.todays)
-
-    winston.info("tomorrows");
-    print(weathers.tomorrows)
-    
-    res.send(weathers);
-
-});
-
-function print(arr) {
-    for (let i = 0; i < arr.length; i++) {
-        winston.info(dayjs.unix(arr[i].dt).tz().format());
-    }
+    return weathers
 }
 
 
