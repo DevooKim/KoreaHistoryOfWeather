@@ -29,5 +29,4 @@ router.get('/:lat/:lon', isCache, getYesterdays, getBefores, getForecasts, async
 
 });
 
-
 module.exports = router;
