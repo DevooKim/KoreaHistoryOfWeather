@@ -11,7 +11,7 @@ dayjs.tz.setDefault("Asia/Seoul")
 exports.getYesterdays = async (req, res, next) => {
     const kor = dayjs.tz();
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
     const location = { lat: lat, lon: lon }
 
     let unixTime = await getUnixTime(1);
@@ -33,7 +33,8 @@ exports.getYesterdays = async (req, res, next) => {
 
 exports.getBefores = async (req, res, next) => {
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
+
     const location = { lat: lat, lon: lon }
     const unixTime = await getUnixTime(0);
     let befores = await rqHistory(location, unixTime);
@@ -46,7 +47,8 @@ exports.getBefores = async (req, res, next) => {
 
 exports.getForecasts = async (req, res, next) => {
     const { lat, lon } = req.params;
-    const key = "" + lat + lon;
+    const key = req.key;
+
     const location = { lat: lat, lon: lon }
     let forecasts = await rqForecasts(location);
     
