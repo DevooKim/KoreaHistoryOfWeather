@@ -4,7 +4,28 @@ const dotenv = require('dotenv')
 dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY;
 
-exports.rqHistory = async (location, time) => {
+exports.getYesterdays = async (time, location, callback) => {
+
+    const bUnixTime = callback(time, 0);
+    const befores = await rqHistory(location, bUnixTime);
+
+    let yUnixTime = callback(time, 1);
+    let yesterdays = await rqHistory(location, yUnixTime);
+
+    if (time.hour() >= 9) {
+        yUnixTime = callback(time, 2);
+        const secondYesterdays = await rqHistory(location, yUnixTime);
+        yesterdays = yesterdays.concat(secondYesterdays)
+    }
+    
+    return [ yesterdays, befores ]
+}
+
+exports.getForecasts = async (location) => {
+    return await rqForecasts(location);
+}
+
+async function rqHistory (location, time) {
     let historys = undefined;
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
@@ -27,7 +48,7 @@ exports.rqHistory = async (location, time) => {
     return historys;
 }
 
-exports.rqForecasts = async (location) => {
+async function rqForecasts (location) {
     let fores = undefined;
     await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall",

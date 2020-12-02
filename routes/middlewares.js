@@ -1,64 +1,41 @@
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
-const { rqHistory, rqForecasts } = require('./func/request')
+const { getYesterdays, getForecasts } = require('./func/request')
 const { setCache } = require('./func/cache')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
 dayjs.tz.setDefault("Asia/Seoul")
 
-exports.getYesterdays = async (req, res, next) => {
-    const kor = dayjs.tz();
+exports.getWeathers = async (req, res, next) => {
+    const time = dayjs.tz();
+    const offset = 3 - ( time.hour() % 3 );
     const { lat, lon } = req.params;
+    const location = { lat: lat, lon: lon };
     const key = req.key;
-    const location = { lat: lat, lon: lon }
 
-    let unixTime = await getUnixTime(1);
-    let yesterdays = await rqHistory(location, unixTime);
+    const [ yesterdays, befores ] = await getYesterdays(time, location, getUnixTime);
+    const forecasts = await getForecasts(location);
 
-    if (kor.hour() >= 9) {
-        unixTime = await getUnixTime(2);
-        const secondYesterdays = await rqHistory(location, unixTime);
-        yesterdays = yesterdays.concat(secondYesterdays)
-    }
-    
     console.log("yesterdays caching...");
-    yesterdays = await setCache(key, yesterdays);
-    req.yesterdays = yesterdays;
-    next();  
-}
-
-exports.getBefores = async (req, res, next) => {
-    const { lat, lon } = req.params;
-    const key = req.key;
-    const location = { lat: lat, lon: lon }
-    const unixTime = await getUnixTime(0);
-    let befores = await rqHistory(location, unixTime);
+    setCache(key, yesterdays);
 
     console.log("befores caching...");
-    befores = await setCache(key, befores);
-    req.befores = befores;
-    next();
-}
-
-exports.getForecasts = async (req, res, next) => {
-    const { lat, lon } = req.params;
-    const key = req.key;
-    const location = { lat: lat, lon: lon }
-    let forecasts = await rqForecasts(location);
+    setCache(key, befores);
     
-    const kor = dayjs.tz();
-    const start = 3 - ( kor.hour() % 3 );
-
     console.log("forecasts caching...");
-    forecasts = await setCache(key, forecasts, start);
+    setCache(key, forecasts, offset);
+
+    req.yesterdays = yesterdays;
+    req.befores = befores;
     req.forecasts = forecasts;
+
     next();
 }
 
-async function getUnixTime(offset) {
-    let kor = dayjs.tz();
-    kor = kor.subtract(2, 'second');
-    return Math.floor(kor.subtract(offset, 'day') / 1000);
+
+function getUnixTime(time, offset) {
+    // time = time.subtract(2, 'second');
+    return Math.floor(time.subtract(offset, 'day') / 1000);
 }
