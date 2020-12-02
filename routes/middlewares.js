@@ -19,17 +19,17 @@ exports.getWeathers = async (req, res, next) => {
     const forecasts = await getForecasts(location);
 
     console.log("yesterdays caching...");
-    setCache(key, yesterdays);
+    const yData = setCache(key, yesterdays);
 
     console.log("befores caching...");
-    setCache(key, befores);
+    const bData = setCache(key, befores);
     
     console.log("forecasts caching...");
-    setCache(key, forecasts, offset);
+    const fData = setCache(key, forecasts, offset);
 
-    req.yesterdays = yesterdays;
-    req.befores = befores;
-    req.forecasts = forecasts;
+    req.yesterdays = yData;
+    req.befores = bData;
+    req.forecasts = fData;
 
     next();
 }

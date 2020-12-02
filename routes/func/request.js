@@ -26,31 +26,29 @@ exports.getForecasts = async (location) => {
 }
 
 async function rqHistory (location, time) {
-    let historys = undefined;
-    await rp({
-        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
-            qs: {
-                lat: location.lat,
-                lon: location.lon,
-                dt: time,
-                appid: apiKey
-            }
-        }, (response, body) => {
 
-            const data = JSON.parse(body.body);
-            if (data.hourly === undefined) {
-                historys = [data.current];
-            } else {
-                historys = data.hourly;
-            }
+    const response =  await rp({
+        uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
+        qs: {
+            lat: location.lat,
+            lon: location.lon,
+            dt: time,
+            appid: apiKey
+        }
     });
 
-    return historys;
+    const data = JSON.parse(response);
+
+    if (data.hourly === undefined) {
+        return [data.current];
+    } else {
+        return data.hourly;
+    }
+
 }
 
 async function rqForecasts (location) {
-    let fores = undefined;
-    await rp({
+    const data =  await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall",
         qs: {
             lat: location.lat,
@@ -58,9 +56,6 @@ async function rqForecasts (location) {
             exclude: "current,minutely,daily,alerts",
             appid: apiKey
         }
-    }, (response, body) => {
-        const data = JSON.parse(body.body);
-        fores = data.hourly;
     });
-    return fores;
+    return JSON.parse(data).hourly;
 }

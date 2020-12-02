@@ -1,7 +1,7 @@
 const redis = require('redis')
 const dotenv = require('dotenv');
 
-const EX = 30;
+const EX = 10;
 
 dotenv.config();
 
@@ -32,6 +32,7 @@ exports.isCache = (req, res, next) => {
 }
 
 exports.setCache = (key, body, start = 0) => {
+    const result = []
     try {
         for (let i = start; i < body.length; i += 3) {
             const data = {
@@ -44,6 +45,7 @@ exports.setCache = (key, body, start = 0) => {
                 weather: body[i].weather
             }
 
+            result.push(data);
             client.rpush(key, JSON.stringify(data));
         }
         
@@ -53,6 +55,8 @@ exports.setCache = (key, body, start = 0) => {
     } catch (error) {
         console.error("setCache Error: " + error);
     }
+
+    return result;
 }
 
 function parseData(data) {
