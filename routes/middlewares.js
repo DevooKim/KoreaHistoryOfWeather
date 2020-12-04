@@ -11,24 +11,24 @@ dayjs.tz.setDefault("Asia/Seoul")
 
 exports.getWeathers = async (req, res, next) => {
     const time = dayjs.tz();
-    const offset = 3 - ( time.hour() % 3 );
+    const offset = 3 - (time.hour() % 3);
     const { lat, lon } = req.body;
     const location = { lat: lat, lon: lon };
     const key = req.key;
 
-    const [ yesterdays, befores ] = await getHistory(time, location, getUnixTime);
-    const [ forecasts, daily ] = await getForecasts(location);
+    const [yesterdays, befores] = await getHistory(time, location, getUnixTime);
+    const [forecasts, daily] = await getForecasts(location);
 
     winston.info("yesterdays caching...");
     const yData = setCache(dayjs, key, yesterdays);
 
     winston.info("befores caching...");
     const bData = setCache(dayjs, key, befores);
-    
+
     winston.info("forecasts caching...");
     const fData = setCache(dayjs, key, forecasts, offset);
 
-    winston.info("daily caching");
+    winston.info("daily caching...");
     const dData = setCache(dayjs, key, daily, 0, 1);
 
     req.yesterdays = yData;
@@ -41,6 +41,6 @@ exports.getWeathers = async (req, res, next) => {
 
 
 function getUnixTime(time, offset) {
-    // time = time.subtract(2, 'second');
+    // time = time.subtract(2, 'second');   //openweatherAPI server is late 2seconds
     return Math.floor(time.subtract(offset, 'day') / 1000);
 }

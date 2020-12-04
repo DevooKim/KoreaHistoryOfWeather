@@ -16,18 +16,17 @@ client.on('error', (err) => {
 });
 
 exports.isCache = (req, res, next) => {
-    // const key = getKey(req.params.lat, req.params.lon);
-    // res.send(req.body);
     const key = getKey(req.body.lat, req.body.lon);
     req.key = key;
+
     winston.info(`check cache ${key}`)
     client.lrange(key, 0, -1, (err, arr) => {
         if (err) throw err;
-        if(arr.length !== 0) {
+
+        if (arr.length !== 0) {
             const weather = parseData(arr);
             winston.info("call cache OK");
             res.send(weather);
-
         } else {
             winston.info('not cached')
             next();
@@ -54,10 +53,10 @@ exports.setCache = (dayjs, key, body, offset = 0, iter = 3) => {
             result.push(data);
             client.rpush(key, JSON.stringify(data));
         }
-        
+
         winston.info("set Cache OK");
         client.expire(key, EX);
-        
+
     } catch (error) {
         winston.error("setCache Error: " + error);
     }

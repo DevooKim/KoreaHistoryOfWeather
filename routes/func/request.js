@@ -17,17 +17,17 @@ exports.getHistory = async (time, location, callback) => {
         const secondYesterdays = await rqHistory(location, yUnixTime);
         yesterdays = yesterdays.concat(secondYesterdays)
     }
-    
-    return [ yesterdays, befores ]
+
+    return [yesterdays, befores]
 }
 
 exports.getForecasts = async (location) => {
     return await rqForecasts(location);
 }
 
-async function rqHistory (location, time) {
+async function rqHistory(location, time) {
 
-    const response =  await rp({
+    const response = await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall/timemachine",
         qs: {
             lat: location.lat,
@@ -47,8 +47,8 @@ async function rqHistory (location, time) {
 
 }
 
-async function rqForecasts (location) {
-    const data =  await rp({
+async function rqForecasts(location) {
+    const data = await rp({
         uri: "https://api.openweathermap.org/data/2.5/onecall",
         qs: {
             lat: location.lat,
@@ -59,6 +59,6 @@ async function rqForecasts (location) {
     });
 
     const result = JSON.parse(data);
-    
-    return [ result.hourly, result.daily ];
+
+    return [result.hourly, result.daily];
 }
