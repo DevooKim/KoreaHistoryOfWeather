@@ -1,7 +1,7 @@
 const dayjs = require('dayjs')
 const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
-const { getYesterdays, getForecasts } = require('./func/request')
+const { getHistory, getForecasts } = require('./func/request')
 const { setCache } = require('./func/cache')
 
 dayjs.extend(UTC);
@@ -15,21 +15,26 @@ exports.getWeathers = async (req, res, next) => {
     const location = { lat: lat, lon: lon };
     const key = req.key;
 
-    const [ yesterdays, befores ] = await getYesterdays(time, location, getUnixTime);
-    const forecasts = await getForecasts(location);
+    const [ yesterdays, befores ] = await getHistory(time, location, getUnixTime);
+    const [ forecasts, daily ] = await getForecasts(location);
 
     console.log("yesterdays caching...");
-    const yData = setCache(key, yesterdays);
+    const yData = setCache(dayjs, key, yesterdays);
 
     console.log("befores caching...");
-    const bData = setCache(key, befores);
+    const bData = setCache(dayjs, key, befores);
     
     console.log("forecasts caching...");
-    const fData = setCache(key, forecasts, offset);
+    const fData = setCache(dayjs, key, forecasts, offset);
+
+    console.log("daily caching");
+    const dData = setCache(dayjs, key, daily, 0, 1);
+    console.log(dData);
 
     req.yesterdays = yData;
     req.befores = bData;
     req.forecasts = fData;
+    req.daily = dData;
 
     next();
 }

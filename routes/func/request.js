@@ -4,7 +4,7 @@ const dotenv = require('dotenv')
 dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY;
 
-exports.getYesterdays = async (time, location, callback) => {
+exports.getHistory = async (time, location, callback) => {
 
     const bUnixTime = callback(time, 0);
     const befores = await rqHistory(location, bUnixTime);
@@ -53,9 +53,12 @@ async function rqForecasts (location) {
         qs: {
             lat: location.lat,
             lon: location.lon,
-            exclude: "current,minutely,daily,alerts",
+            exclude: "current,minutely,alerts",
             appid: apiKey
         }
     });
-    return JSON.parse(data).hourly;
+
+    const result = JSON.parse(data);
+    
+    return [ result.hourly, result.daily ];
 }

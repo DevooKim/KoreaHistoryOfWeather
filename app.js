@@ -3,7 +3,7 @@ const morgan = require('morgan')
 const dotenv = require('dotenv')
 const path = require('path')
 
-const historyRouter = require('./routes/historyWeather')
+const weatherRouter = require('./routes/weatherRouter')
 const loggingRouter = require('./routes/testLogger')
 
 dotenv.config();
@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/history', historyRouter);
+app.use('/weather', weatherRouter);
 app.use('/test', loggingRouter);
 
 

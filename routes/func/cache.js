@@ -1,7 +1,7 @@
 const redis = require('redis')
 const dotenv = require('dotenv');
 
-const EX = 10;
+const EX = 30;
 
 dotenv.config();
 
@@ -31,15 +31,17 @@ exports.isCache = (req, res, next) => {
     })
 }
 
-exports.setCache = (key, body, start = 0) => {
+exports.setCache = (dayjs, key, body, offset = 0, iter = 3) => {
     const result = []
     try {
-        for (let i = start; i < body.length; i += 3) {
+        for (let i = offset; i < body.length; i += iter) {
             const data = {
-                dt: body[i].dt,
+                dt: dayjs.unix(body[i].dt).tz().format(),
                 temp: body[i].temp,
                 feels_like: body[i].feels_like,
+                humidity: body[i].humidity,
                 clouds: body[i].clouds,
+                visibility: body[i].visibility,
                 rain: body[i].rain,
                 snow: body[i].snow,
                 weather: body[i].weather

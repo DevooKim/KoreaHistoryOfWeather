@@ -15,6 +15,7 @@ const weathers = {
     "yesterdays": [],
     "todays": [],
     "tomorrows": [],
+    "daily": [],
 }
     
 //lat, lon: 36.354687/127.420997
@@ -24,6 +25,7 @@ router.get('/:lat/:lon', isCache, getWeathers, async (req, res) => {
     weathers.yesterdays = data.slice(5, 13);
     weathers.todays = data.slice(13, 21);
     weathers.tomorrows = data.slice(21, 30);
+    weathers.daily = req.daily;
 
     res.send(weathers);
 
