@@ -4,7 +4,6 @@ const dotenv = require('dotenv')
 const path = require('path')
 
 const weatherRouter = require('./routes/weatherRouter')
-const loggingRouter = require('./routes/testLogger')
 
 dotenv.config();
 
@@ -17,7 +16,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/weather', weatherRouter);
-app.use('/test', loggingRouter);
 
 app.use((req, res, next) => {
     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`); //추후 제거
