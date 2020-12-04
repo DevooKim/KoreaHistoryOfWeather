@@ -19,7 +19,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/weather', weatherRouter);
 app.use('/test', loggingRouter);
 
-
 app.use((req, res, next) => {
     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`); //추후 제거
     error.status = 404;
