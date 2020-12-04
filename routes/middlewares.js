@@ -3,6 +3,7 @@ const UTC = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
 const { getHistory, getForecasts } = require('./func/request')
 const { setCache } = require('./func/cache')
+const winston = require('../config/winston')
 
 dayjs.extend(UTC);
 dayjs.extend(timezone);
@@ -18,18 +19,17 @@ exports.getWeathers = async (req, res, next) => {
     const [ yesterdays, befores ] = await getHistory(time, location, getUnixTime);
     const [ forecasts, daily ] = await getForecasts(location);
 
-    console.log("yesterdays caching...");
+    winston.info("yesterdays caching...");
     const yData = setCache(dayjs, key, yesterdays);
 
-    console.log("befores caching...");
+    winston.info("befores caching...");
     const bData = setCache(dayjs, key, befores);
     
-    console.log("forecasts caching...");
+    winston.info("forecasts caching...");
     const fData = setCache(dayjs, key, forecasts, offset);
 
-    console.log("daily caching");
+    winston.info("daily caching");
     const dData = setCache(dayjs, key, daily, 0, 1);
-    console.log(dData);
 
     req.yesterdays = yData;
     req.befores = bData;

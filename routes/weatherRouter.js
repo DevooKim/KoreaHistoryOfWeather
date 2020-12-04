@@ -1,6 +1,7 @@
 const express = require('express')
 const { isCache } = require('./func/cache')
 const { getWeathers } = require('./middlewares')
+const winston = require('../config/winston')
 
 const router = express.Router();
 

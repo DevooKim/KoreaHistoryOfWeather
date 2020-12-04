@@ -1,5 +1,6 @@
 const redis = require('redis')
 const dotenv = require('dotenv');
+const winston = require('../../config/winston')
 
 const EX = 30;
 
@@ -11,21 +12,22 @@ const client = redis.createClient(
 );
 
 client.on('error', (err) => {
-    console.log("redis Error: " + err);
+    winston.info("redis Error: " + err);
 });
 
 exports.isCache = (req, res, next) => {
     const key = getKey(req.params.lat, req.params.lon);
     req.key = key;
-
+    winston.info(`check cache ${key}`)
     client.lrange(key, 0, -1, (err, arr) => {
         if (err) throw err;
         if(arr.length !== 0) {
             const weather = parseData(arr);
-            console.log("call cache OK");
+            winston.info("call cache OK");
             res.send(weather);
 
         } else {
+            winston.info('not cached')
             next();
         }
     })
@@ -51,18 +53,17 @@ exports.setCache = (dayjs, key, body, offset = 0, iter = 3) => {
             client.rpush(key, JSON.stringify(data));
         }
         
-        console.log("set Cache OK");
+        winston.info("set Cache OK");
         client.expire(key, EX);
         
     } catch (error) {
-        console.error("setCache Error: " + error);
+        winston.error("setCache Error: " + error);
     }
 
     return result;
 }
 
 function parseData(data) {
-    console.log("start");
     const weathers = {
         "yesterdays": [],
         "todays": [],
