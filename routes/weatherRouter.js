@@ -1,13 +1,6 @@
 const express = require('express')
 const { isCache } = require('./func/cache')
 const { getWeathers } = require('./middlewares')
-const dayjs = require('dayjs')
-const UTC = require('dayjs/plugin/utc')
-const timezone = require('dayjs/plugin/timezone')
-
-dayjs.extend(UTC);
-dayjs.extend(timezone);
-dayjs.tz.setDefault("Asia/Seoul")
 
 const router = express.Router();
 
