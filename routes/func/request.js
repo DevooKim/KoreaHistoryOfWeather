@@ -5,20 +5,19 @@ dotenv.config();
 const apiKey = process.env.OPENWEATHER_API_KEY;
 
 exports.getHistory = async (time, location, callback) => {
-  const bUnixTime = callback(time, 0);
-  let yUnixTime = callback(time, 1);
+  const unixTime = {
+    today: callback(time, 0),
+    yesterday: callback(time, 1),
+    twoDayAgo: callback(time, 2),
+  };
 
   let [befores, yesterdays] = await Promise.all([
-    rqHistory(location, bUnixTime),
-    rqHistory(location, yUnixTime),
+    rqHistory(location, unixTime.today),
+    rqHistory(location, unixTime.yesterday),
   ]);
 
-  //   const befores = await rqHistory(location, bUnixTime);
-  //   let yesterdays = await rqHistory(location, yUnixTime);
-
   if (time.hour() >= 9) {
-    yUnixTime = callback(time, 2);
-    const secondYesterdays = await rqHistory(location, yUnixTime);
+    const secondYesterdays = await rqHistory(location, unixTime.twoDayAgo);
     yesterdays = yesterdays.concat(secondYesterdays);
   }
 
